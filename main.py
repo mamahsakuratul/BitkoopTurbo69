@@ -134,3 +134,37 @@ class Coupon:
             "min_purchase": self.min_purchase,
             "max_discount": self.max_discount,
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
+            "is_verified": self.is_verified,
+            "use_count": self.use_count,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+            "tags": self.tags,
+        }
+
+
+@dataclass
+class UserPreference:
+    user_id: str
+    preferred_categories: List[str]
+    preferred_merchants: List[str]
+    currency: str
+    max_results: int
+    exclude_expired: bool = True
+    updated_at: datetime = field(default_factory=datetime.utcnow)
+
+    def to_dict(self) -> dict:
+        return {
+            "user_id": self.user_id,
+            "preferred_categories": self.preferred_categories,
+            "preferred_merchants": self.preferred_merchants,
+            "currency": self.currency,
+            "max_results": self.max_results,
+            "exclude_expired": self.exclude_expired,
+            "updated_at": self.updated_at.isoformat(),
+        }
+
+
+@dataclass
+class SearchRequest:
+    query: str
+    categories: Optional[List[str]] = None
