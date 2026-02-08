@@ -100,3 +100,37 @@ class Merchant:
             "categories": self.categories,
             "logo_url": self.logo_url,
             "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+        }
+
+
+@dataclass
+class Coupon:
+    coupon_id: str
+    merchant_id: str
+    code: str
+    description: str
+    coupon_type: CouponType
+    value: float
+    currency: str
+    min_purchase: Optional[float] = None
+    max_discount: Optional[float] = None
+    expires_at: Optional[datetime] = None
+    is_verified: bool = False
+    use_count: int = 0
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    updated_at: datetime = field(default_factory=datetime.utcnow)
+    tags: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            "coupon_id": self.coupon_id,
+            "merchant_id": self.merchant_id,
+            "code": self.code,
+            "description": self.description,
+            "coupon_type": self.coupon_type.value,
+            "value": self.value,
+            "currency": self.currency,
+            "min_purchase": self.min_purchase,
+            "max_discount": self.max_discount,
+            "expires_at": self.expires_at.isoformat() if self.expires_at else None,
