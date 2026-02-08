@@ -168,3 +168,37 @@ class UserPreference:
 class SearchRequest:
     query: str
     categories: Optional[List[str]] = None
+    merchant_ids: Optional[List[str]] = None
+    coupon_types: Optional[List[CouponType]] = None
+    page: int = 1
+    page_size: int = 12
+    sort_by: str = "relevance"
+
+
+@dataclass
+class SearchResult:
+    coupon: Coupon
+    score: float
+    match_reasons: List[str]
+
+
+# ---------------------------------------------------------------------------
+# Config
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class AppConfig:
+    app_name: str = "BitkoopTurbo69"
+    environment: str = "production"
+    debug: bool = False
+    default_currency: str = DEFAULT_CURRENCY
+    page_size: int = DEFAULT_PAGE_SIZE
+    rate_limit_rpm: int = RATE_LIMIT_REQUESTS_PER_MINUTE
+    cache_ttl_coupons: int = CACHE_TTL_COUPONS
+    cache_ttl_merchants: int = CACHE_TTL_MERCHANTS
+    session_ttl: int = SESSION_TTL_SECONDS
+    api_host: str = "0.0.0.0"
+    api_port: int = 8947
+    log_level: str = "INFO"
+    secret_salt: str = "x9k2m7q4v1n8p5w0z3b6c"
