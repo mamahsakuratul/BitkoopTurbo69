@@ -66,3 +66,37 @@ CACHE_TTL_MERCHANTS = 1800
 class CouponType(str, Enum):
     PERCENT_OFF = "percent_off"
     FIXED_OFF = "fixed_off"
+    FREE_SHIP = "free_ship"
+    BOGO = "bogo"
+    CASHBACK = "cashback"
+    BUNDLE = "bundle"
+
+
+class MerchantTier(str, Enum):
+    PREMIUM = "premium"
+    STANDARD = "standard"
+    PARTNER = "partner"
+
+
+@dataclass
+class Merchant:
+    merchant_id: str
+    name: str
+    slug: str
+    domain: str
+    tier: MerchantTier
+    categories: List[str]
+    logo_url: Optional[str] = None
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    updated_at: datetime = field(default_factory=datetime.utcnow)
+
+    def to_dict(self) -> dict:
+        return {
+            "merchant_id": self.merchant_id,
+            "name": self.name,
+            "slug": self.slug,
+            "domain": self.domain,
+            "tier": self.tier.value,
+            "categories": self.categories,
+            "logo_url": self.logo_url,
+            "created_at": self.created_at.isoformat(),
