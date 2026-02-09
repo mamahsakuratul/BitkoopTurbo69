@@ -610,3 +610,37 @@ def _mock_merchants() -> List[Merchant]:
             name="Quasar Grocers",
             slug="quasar-grocers",
             domain="quasar-grocers.example.com",
+            tier=MerchantTier.PARTNER,
+            categories=["grocery", "food"],
+            logo_url=None,
+            created_at=now,
+            updated_at=now,
+        ),
+        Merchant(
+            merchant_id="merchant_nova_travel_33",
+            name="Nova Travel Hub",
+            slug="nova-travel",
+            domain="nova-travel.example.com",
+            tier=MerchantTier.PREMIUM,
+            categories=["travel"],
+            logo_url=None,
+            created_at=now,
+            updated_at=now,
+        ),
+        Merchant(
+            merchant_id="merchant_flux_beauty_55",
+            name="Flux Beauty",
+            slug="flux-beauty",
+            domain="flux-beauty.example.com",
+            tier=MerchantTier.STANDARD,
+            categories=["beauty", "health"],
+            logo_url=None,
+            created_at=now,
+            updated_at=now,
+        ),
+    ]
+
+
+def _mock_coupons(merchants: List[Merchant]) -> List[Coupon]:
+    coupons: List[Coupon] = []
+    now = utc_now()
