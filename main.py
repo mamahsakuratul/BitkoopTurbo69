@@ -270,3 +270,37 @@ def validate_coupon_type(value: str) -> CouponType:
         return CouponType(value)
     except ValueError:
         raise ValidationError(f"Unknown coupon type: {value}", "coupon_type")
+
+
+def validate_currency(currency: str) -> str:
+    c = currency.strip().upper()
+    if c not in SUPPORTED_CURRENCIES:
+        raise ValidationError(f"Unsupported currency: {currency}", "currency")
+    return c
+
+
+def validate_page(page: int) -> int:
+    if page < 1:
+        return 1
+    return min(page, 9999)
+
+
+def validate_page_size(size: int, max_size: int = 100) -> int:
+    if size < 1:
+        return 12
+    return min(size, max_size)
+
+
+def validate_categories(categories: Optional[List[str]]) -> List[str]:
+    if not categories:
+        return []
+    out = []
+    for c in categories[:20]:
+        if c and isinstance(c, str) and c.strip():
+            out.append(c.strip().lower())
+    return list(dict.fromkeys(out))
+
+
+# ---------------------------------------------------------------------------
+# Utils
+# ---------------------------------------------------------------------------
