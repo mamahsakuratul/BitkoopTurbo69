@@ -474,3 +474,37 @@ SUBCATEGORIES: dict = {
     "jewelry": ["rings", "necklaces", "bracelets", "earrings", "watches"],
 }
 
+
+def get_all_categories() -> List[str]:
+    return list(CATEGORIES)
+
+
+def get_subcategories(category: str) -> List[str]:
+    return SUBCATEGORIES.get(category.lower(), [])
+
+
+def normalize_category(cat: str) -> str:
+    c = cat.strip().lower().replace(" ", "-")
+    return c if c in CATEGORIES else ""
+
+
+def expand_categories_with_subs(categories: List[str]) -> Set[str]:
+    out: Set[str] = set()
+    for c in categories:
+        out.add(c.lower())
+        for sub in get_subcategories(c):
+            out.add(sub)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Scoring
+# ---------------------------------------------------------------------------
+
+CATEGORY_WEIGHTS = {
+    "electronics": CATEGORY_WEIGHT_ELECTRONICS,
+    "fashion": CATEGORY_WEIGHT_FASHION,
+    "grocery": CATEGORY_WEIGHT_GROCERY,
+    "travel": CATEGORY_WEIGHT_TRAVEL,
+    "default": 1.0,
+}
