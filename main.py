@@ -304,3 +304,37 @@ def validate_categories(categories: Optional[List[str]]) -> List[str]:
 # ---------------------------------------------------------------------------
 # Utils
 # ---------------------------------------------------------------------------
+
+
+def normalize_text(text: str) -> str:
+    if not text:
+        return ""
+    normalized = unicodedata.normalize("NFKC", text.strip())
+    return " ".join(normalized.split())
+
+
+def hash_coupon_id(merchant_id: str, code: str, created_ts: Optional[float] = None) -> str:
+    raw = f"{HASH_SALT_PREFIX}{merchant_id}:{code}:{created_ts or 0}"
+    return hashlib.sha256(raw.encode()).hexdigest()[:24]
+
+
+def slugify(name: str) -> str:
+    if not name:
+        return ""
+    s = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
+    s = "".join(c if c.isalnum() or c in "-_" else " " for c in s)
+    return "-".join(s.lower().split())[:64]
+
+
+def utc_now() -> datetime:
+    return datetime.utcnow()
+
+
+def parse_iso_date(s: Optional[str]) -> Optional[datetime]:
+    if not s:
+        return None
+    try:
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except (ValueError, TypeError):
+        return None
+
