@@ -236,3 +236,37 @@ def get_config() -> AppConfig:
 
 
 class ValidationError(Exception):
+    def __init__(self, message: str, field: Optional[str] = None):
+        self.message = message
+        self.field = field
+        super().__init__(message)
+
+
+def validate_coupon_code(code: str) -> str:
+    if not code or not code.strip():
+        raise ValidationError("Coupon code cannot be empty", "code")
+    cleaned = code.strip()[:MAX_CODE_LENGTH]
+    if len(cleaned) < 2:
+        raise ValidationError("Coupon code too short", "code")
+    return cleaned
+
+
+def validate_description(desc: str) -> str:
+    if not desc:
+        return ""
+    return desc.strip()[:MAX_DESCRIPTION_LENGTH]
+
+
+def validate_merchant_id(merchant_id: str) -> str:
+    if not merchant_id or not merchant_id.strip():
+        raise ValidationError("Merchant ID cannot be empty", "merchant_id")
+    if not re.match(r"^[a-zA-Z0-9_-]+$", merchant_id):
+        raise ValidationError("Merchant ID contains invalid characters", "merchant_id")
+    return merchant_id.strip()
+
+
+def validate_coupon_type(value: str) -> CouponType:
+    try:
+        return CouponType(value)
+    except ValueError:
+        raise ValidationError(f"Unknown coupon type: {value}", "coupon_type")
