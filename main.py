@@ -406,3 +406,37 @@ class CouponStore:
         self._by_merchant.setdefault(coupon.merchant_id, []).append(coupon.coupon_id)
 
     def get_coupon(self, coupon_id: str) -> Optional[Coupon]:
+        return self._coupons.get(coupon_id)
+
+    def get_coupons_by_merchant(self, merchant_id: str) -> List[Coupon]:
+        ids = self._by_merchant.get(merchant_id, [])
+        return [self._coupons[cid] for cid in ids if cid in self._coupons]
+
+    def get_coupons_by_category(self, category: str) -> List[Coupon]:
+        m_ids = self._by_category.get(category, [])
+        out: List[Coupon] = []
+        for mid in m_ids:
+            out.extend(self.get_coupons_by_merchant(mid))
+        return out
+
+    def list_all_coupons(self, limit: int = 500) -> List[Coupon]:
+        return list(self._coupons.values())[:limit]
+
+    def remove_coupon(self, coupon_id: str) -> bool:
+        if coupon_id not in self._coupons:
+            return False
+        c = self._coupons.pop(coupon_id)
+        lst = self._by_merchant.get(c.merchant_id, [])
+        if coupon_id in lst:
+            lst.remove(coupon_id)
+        return True
+
+    def increment_use_count(self, coupon_id: str) -> bool:
+        c = self._coupons.get(coupon_id)
+        if not c:
+            return False
+        c.use_count += 1
+        c.updated_at = utc_now()
+        return True
+
+    def coupon_count(self) -> int:
