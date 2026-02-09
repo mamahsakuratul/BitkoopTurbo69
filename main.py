@@ -440,3 +440,37 @@ class CouponStore:
         return True
 
     def coupon_count(self) -> int:
+        return len(self._coupons)
+
+    def merchant_count(self) -> int:
+        return len(self._merchants)
+
+
+# ---------------------------------------------------------------------------
+# Catalog
+# ---------------------------------------------------------------------------
+
+CATEGORIES: List[str] = [
+    "electronics", "fashion", "grocery", "travel", "home", "sports",
+    "beauty", "books", "toys", "automotive", "health", "food", "pet",
+    "office", "jewelry",
+]
+
+SUBCATEGORIES: dict = {
+    "electronics": ["laptops", "phones", "tablets", "audio", "gaming", "cameras"],
+    "fashion": ["mens", "womens", "kids", "shoes", "accessories", "outerwear"],
+    "grocery": ["produce", "dairy", "frozen", "beverages", "snacks", "organic"],
+    "travel": ["flights", "hotels", "car-rental", "vacation-packages", "cruises"],
+    "home": ["furniture", "kitchen", "bedding", "decor", "outdoor", "tools"],
+    "sports": ["fitness", "outdoor", "cycling", "team-sports", "winter"],
+    "beauty": ["skincare", "makeup", "hair", "fragrance", "bath"],
+    "books": ["fiction", "nonfiction", "children", "academic", "audiobooks"],
+    "toys": ["action-figures", "board-games", "educational", "outdoor-toys"],
+    "automotive": ["parts", "accessories", "tires", "tools", "care"],
+    "health": ["vitamins", "supplements", "medical-supplies", "wellness"],
+    "food": ["restaurants", "meal-kits", "delivery", "baking", "international"],
+    "pet": ["dog", "cat", "bird", "aquarium", "small-pet"],
+    "office": ["supplies", "furniture", "tech", "printing", "storage"],
+    "jewelry": ["rings", "necklaces", "bracelets", "earrings", "watches"],
+}
+
