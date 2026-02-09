@@ -372,3 +372,37 @@ def serialize_search_results(results: List[SearchResult]) -> List[Dict[str, Any]
 def serialize_user_preference(up: UserPreference) -> Dict[str, Any]:
     return up.to_dict()
 
+
+def serialize_error(message: str, code: str = "ERROR") -> Dict[str, Any]:
+    return {"success": False, "error": message, "code": code}
+
+
+# ---------------------------------------------------------------------------
+# Coupon store
+# ---------------------------------------------------------------------------
+
+
+class CouponStore:
+    def __init__(self) -> None:
+        self._coupons: Dict[str, Coupon] = {}
+        self._merchants: Dict[str, Merchant] = {}
+        self._by_merchant: Dict[str, List[str]] = {}
+        self._by_category: Dict[str, List[str]] = {}
+
+    def add_merchant(self, merchant: Merchant) -> None:
+        self._merchants[merchant.merchant_id] = merchant
+        for cat in merchant.categories:
+            self._by_category.setdefault(cat, []).append(merchant.merchant_id)
+            self._by_category[cat] = list(dict.fromkeys(self._by_category[cat]))
+
+    def get_merchant(self, merchant_id: str) -> Optional[Merchant]:
+        return self._merchants.get(merchant_id)
+
+    def list_merchants(self, limit: int = 100) -> List[Merchant]:
+        return list(self._merchants.values())[:limit]
+
+    def add_coupon(self, coupon: Coupon) -> None:
+        self._coupons[coupon.coupon_id] = coupon
+        self._by_merchant.setdefault(coupon.merchant_id, []).append(coupon.coupon_id)
+
+    def get_coupon(self, coupon_id: str) -> Optional[Coupon]:
