@@ -542,3 +542,37 @@ def _type_bonus(coupon_type: CouponType) -> float:
         CouponType.BOGO: 1.08,
         CouponType.CASHBACK: 1.07,
         CouponType.BUNDLE: 1.04,
+    }
+    return bonuses.get(coupon_type, 1.0)
+
+
+def compute_coupon_score(
+    coupon: Coupon,
+    merchant: Merchant,
+    query_terms: List[str],
+    match_reasons: List[str],
+) -> float:
+    base = 0.5
+    for term in query_terms:
+        if term in coupon.description.lower():
+            base += 0.15
+            match_reasons.append("description_match")
+        if term in coupon.code.lower():
+            base += 0.1
+            match_reasons.append("code_match")
+        for cat in merchant.categories:
+            if term in cat.lower():
+                base += 0.12
+                match_reasons.append("category_match")
+                break
+    base = min(1.0, base)
+    base *= _category_weight(merchant.categories)
+    base *= _tier_multiplier(merchant.tier)
+    base *= _freshness_factor(coupon.created_at)
+    base *= _type_bonus(coupon.coupon_type)
+    if coupon.is_verified:
+        base *= 1.05
+    return max(MIN_RELEVANCE_THRESHOLD, base)
+
+
+# ---------------------------------------------------------------------------
