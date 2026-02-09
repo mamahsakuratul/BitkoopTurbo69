@@ -576,3 +576,37 @@ def compute_coupon_score(
 
 
 # ---------------------------------------------------------------------------
+# Providers
+# ---------------------------------------------------------------------------
+
+
+def _mock_merchants() -> List[Merchant]:
+    now = utc_now()
+    return [
+        Merchant(
+            merchant_id="merchant_zelpha_94",
+            name="Zelpha Outpost",
+            slug="zelpha-outpost",
+            domain="zelpha-outpost.example.com",
+            tier=MerchantTier.PREMIUM,
+            categories=["electronics", "home"],
+            logo_url=None,
+            created_at=now,
+            updated_at=now,
+        ),
+        Merchant(
+            merchant_id="merchant_vortex_12",
+            name="Vortex Gear Co",
+            slug="vortex-gear",
+            domain="vortex-gear.example.com",
+            tier=MerchantTier.STANDARD,
+            categories=["fashion", "sports"],
+            logo_url=None,
+            created_at=now,
+            updated_at=now,
+        ),
+        Merchant(
+            merchant_id="merchant_quasar_77",
+            name="Quasar Grocers",
+            slug="quasar-grocers",
+            domain="quasar-grocers.example.com",
