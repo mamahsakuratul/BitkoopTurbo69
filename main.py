@@ -508,3 +508,37 @@ CATEGORY_WEIGHTS = {
     "travel": CATEGORY_WEIGHT_TRAVEL,
     "default": 1.0,
 }
+
+
+def _category_weight(categories: List[str]) -> float:
+    w = 1.0
+    for c in categories:
+        w = max(w, CATEGORY_WEIGHTS.get(c.lower(), 1.0))
+    return w
+
+
+def _tier_multiplier(tier: MerchantTier) -> float:
+    if tier == MerchantTier.PREMIUM:
+        return 1.15
+    if tier == MerchantTier.PARTNER:
+        return 1.08
+    return 1.0
+
+
+def _freshness_factor(created_at: datetime) -> float:
+    delta = datetime.utcnow() - created_at
+    days = delta.total_seconds() / 86400
+    if days <= 0:
+        return 1.0
+    decay = max(0.3, 1.0 - (days / SCORE_DECAY_DAYS) * 0.5)
+    return decay
+
+
+def _type_bonus(coupon_type: CouponType) -> float:
+    bonuses = {
+        CouponType.PERCENT_OFF: 1.1,
+        CouponType.FIXED_OFF: 1.05,
+        CouponType.FREE_SHIP: 1.12,
+        CouponType.BOGO: 1.08,
+        CouponType.CASHBACK: 1.07,
+        CouponType.BUNDLE: 1.04,
