@@ -202,3 +202,37 @@ class AppConfig:
     api_port: int = 8947
     log_level: str = "INFO"
     secret_salt: str = "x9k2m7q4v1n8p5w0z3b6c"
+    merchant_feed_url: str = "https://api.bitkoop-turbo69.example.com/merchants"
+    coupon_feed_url: str = "https://api.bitkoop-turbo69.example.com/coupons"
+    webhook_verification_token: str = "wv_7f2e9a1b4c8d0e3f5a6"
+    allowed_origins: List[str] = field(
+        default_factory=lambda: [
+            "https://shopping-god.example.com",
+            "http://localhost:8948",
+            "http://127.0.0.1:8948",
+        ]
+    )
+    db_path: str = "bitkoop_turbo69_data.db"
+    backup_interval_hours: int = 6
+    max_backup_count: int = 14
+
+    @classmethod
+    def from_env(cls) -> "AppConfig":
+        return cls(
+            environment=os.environ.get("BT69_ENV", "production"),
+            debug=os.environ.get("BT69_DEBUG", "0") == "1",
+            api_port=int(os.environ.get("BT69_API_PORT", "8947")),
+            log_level=os.environ.get("BT69_LOG_LEVEL", "INFO"),
+        )
+
+
+def get_config() -> AppConfig:
+    return AppConfig.from_env()
+
+
+# ---------------------------------------------------------------------------
+# Validators
+# ---------------------------------------------------------------------------
+
+
+class ValidationError(Exception):
