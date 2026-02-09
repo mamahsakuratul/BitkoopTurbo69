@@ -338,3 +338,37 @@ def parse_iso_date(s: Optional[str]) -> Optional[datetime]:
     except (ValueError, TypeError):
         return None
 
+
+def chunk_list(lst: List, size: int):
+    for i in range(0, len(lst), size):
+        yield lst[i : i + size]
+
+
+# ---------------------------------------------------------------------------
+# Serializers
+# ---------------------------------------------------------------------------
+
+
+def serialize_coupon(c: Coupon) -> Dict[str, Any]:
+    return c.to_dict()
+
+
+def serialize_merchant(m: Merchant) -> Dict[str, Any]:
+    return m.to_dict()
+
+
+def serialize_search_result(sr: SearchResult) -> Dict[str, Any]:
+    return {
+        "coupon": serialize_coupon(sr.coupon),
+        "score": round(sr.score, 4),
+        "match_reasons": sr.match_reasons,
+    }
+
+
+def serialize_search_results(results: List[SearchResult]) -> List[Dict[str, Any]]:
+    return [serialize_search_result(sr) for sr in results]
+
+
+def serialize_user_preference(up: UserPreference) -> Dict[str, Any]:
+    return up.to_dict()
+
