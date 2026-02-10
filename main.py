@@ -916,3 +916,37 @@ class AnalyticsAggregator:
 # Export
 # ---------------------------------------------------------------------------
 
+
+def export_coupons_json(coupons: List[Coupon]) -> str:
+    return json.dumps([serialize_coupon(c) for c in coupons], indent=2)
+
+
+def export_merchants_json(merchants: List[Merchant]) -> str:
+    return json.dumps([serialize_merchant(m) for m in merchants], indent=2)
+
+
+def export_coupons_csv(coupons: List[Coupon]) -> str:
+    if not coupons:
+        return ""
+    out = io.StringIO()
+    first = serialize_coupon(coupons[0])
+    writer = csv.DictWriter(out, fieldnames=first.keys())
+    writer.writeheader()
+    for c in coupons:
+        row = serialize_coupon(c)
+        row["created_at"] = row["created_at"].replace("T", " ") if row.get("created_at") else ""
+        row["updated_at"] = row["updated_at"].replace("T", " ") if row.get("updated_at") else ""
+        row["expires_at"] = row["expires_at"].replace("T", " ") if row.get("expires_at") else ""
+        writer.writerow(row)
+    return out.getvalue()
+
+
+def export_merchants_csv(merchants: List[Merchant]) -> str:
+    if not merchants:
+        return ""
+    out = io.StringIO()
+    first = serialize_merchant(merchants[0])
+    writer = csv.DictWriter(out, fieldnames=first.keys())
+    writer.writeheader()
+    for m in merchants:
+        row = serialize_merchant(m)
