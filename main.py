@@ -814,3 +814,37 @@ class TTLCache:
     def __init__(self, ttl_seconds: int, max_entries: int = 1000) -> None:
         self._ttl = ttl_seconds
         self._max = max_entries
+        self._data: dict = {}
+        self._expiry: dict = {}
+
+    def get(self, key: str) -> Optional[Any]:
+        if key not in self._data:
+            return None
+        if time.time() > self._expiry.get(key, 0):
+            self._data.pop(key, None)
+            self._expiry.pop(key, None)
+            return None
+        return self._data[key]
+
+    def set(self, key: str, value: Any) -> None:
+        if len(self._data) >= self._max:
+            oldest = min(self._expiry, key=self._expiry.get)
+            self._data.pop(oldest, None)
+            self._expiry.pop(oldest, None)
+        self._data[key] = value
+        self._expiry[key] = time.time() + self._ttl
+
+    def invalidate(self, key: str) -> None:
+        self._data.pop(key, None)
+        self._expiry.pop(key, None)
+
+    def clear(self) -> None:
+        self._data.clear()
+        self._expiry.clear()
+
+
+def coupons_cache() -> TTLCache:
+    return TTLCache(ttl_seconds=CACHE_TTL_COUPONS, max_entries=500)
+
+
+def merchants_cache() -> TTLCache:
