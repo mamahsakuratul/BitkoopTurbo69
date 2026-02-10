@@ -1018,3 +1018,37 @@ def _read_body(environ: dict) -> bytes:
         try:
             length = int(environ.get("CONTENT_LENGTH", 0))
             if length:
+                body = environ["wsgi.input"].read(length)
+        except (ValueError, KeyError):
+            pass
+    return body
+
+
+def _json_response(data: dict) -> bytes:
+    return json.dumps(data).encode("utf-8")
+
+
+def application(environ: dict, start_response: Callable) -> List[bytes]:
+    path_info = environ.get("PATH_INFO", "") or "/"
+    method = environ.get("REQUEST_METHOD", "GET").upper()
+    base, rest = _parse_path(path_info)
+    key = _get_client_key(environ)
+    if not get_limiter().allow(key):
+        start_response("429 Too Many Requests", [("Content-Type", "application/json")])
+        return [_json_response({"success": False, "error": "Rate limit exceeded"})]
+    if base == "search" and method == "POST":
+        body = _read_body(environ)
+        try:
+            data = json.loads(body.decode("utf-8")) if body else {}
+        except json.JSONDecodeError:
+            start_response("400 Bad Request", [("Content-Type", "application/json")])
+            return [_json_response({"success": False, "error": "Invalid JSON"})]
+        query = (data.get("query") or "").strip()
+        if not query:
+            start_response("400 Bad Request", [("Content-Type", "application/json")])
+            return [_json_response({"success": False, "error": "Missing query"})]
+        page = validate_page(int(data.get("page", 1)))
+        page_size = validate_page_size(int(data.get("page_size", 12)))
+        categories = validate_categories(data.get("categories"))
+        types_raw = data.get("coupon_types")
+        coupon_types = None
