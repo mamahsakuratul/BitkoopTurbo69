@@ -848,3 +848,37 @@ def coupons_cache() -> TTLCache:
 
 
 def merchants_cache() -> TTLCache:
+    return TTLCache(ttl_seconds=CACHE_TTL_MERCHANTS, max_entries=200)
+
+
+# ---------------------------------------------------------------------------
+# Analytics
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class SearchEvent:
+    query: str
+    result_count: int
+    categories: List[str]
+    timestamp: datetime = field(default_factory=utc_now)
+
+
+@dataclass
+class RedemptionEvent:
+    coupon_id: str
+    merchant_id: str
+    value: float
+    timestamp: datetime = field(default_factory=utc_now)
+
+
+class AnalyticsAggregator:
+    def __init__(self) -> None:
+        self._search_events: List[SearchEvent] = []
+        self._redemption_events: List[RedemptionEvent] = []
+        self._query_counts: Dict[str, int] = {}
+        self._merchant_redemption_totals: Dict[str, float] = {}
+
+    def record_search(self, query: str, result_count: int, categories: List[str]) -> None:
+        self._search_events.append(
+            SearchEvent(query=query, result_count=result_count, categories=categories)
