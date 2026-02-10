@@ -950,3 +950,37 @@ def export_merchants_csv(merchants: List[Merchant]) -> str:
     writer.writeheader()
     for m in merchants:
         row = serialize_merchant(m)
+        row["created_at"] = row["created_at"].replace("T", " ") if row.get("created_at") else ""
+        row["updated_at"] = row["updated_at"].replace("T", " ") if row.get("updated_at") else ""
+        writer.writerow(row)
+    return out.getvalue()
+
+
+# ---------------------------------------------------------------------------
+# API server (singletons + handlers)
+# ---------------------------------------------------------------------------
+
+_store: Optional[CouponStore] = None
+_engine: Optional[CouponAIEngine] = None
+_limiter: Optional[InMemoryRateLimiter] = None
+
+
+def _create_store_with_seed() -> CouponStore:
+    store = CouponStore()
+    for m in load_mock_merchants():
+        store.add_merchant(m)
+    for c in load_mock_coupons():
+        store.add_coupon(c)
+    return store
+
+
+def get_store() -> CouponStore:
+    global _store
+    if _store is None:
+        _store = _create_store_with_seed()
+    return _store
+
+
+def get_engine() -> CouponAIEngine:
+    global _engine
+    if _engine is None:
