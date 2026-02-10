@@ -644,3 +644,37 @@ def _mock_merchants() -> List[Merchant]:
 def _mock_coupons(merchants: List[Merchant]) -> List[Coupon]:
     coupons: List[Coupon] = []
     now = utc_now()
+    expires = now + timedelta(days=30)
+    for i, m in enumerate(merchants):
+        code = f"BT69_{m.slug.upper()}_{1000 + i}"
+        cid = hash_coupon_id(m.merchant_id, code, now.timestamp())
+        coupons.append(
+            Coupon(
+                coupon_id=cid,
+                merchant_id=m.merchant_id,
+                code=code,
+                description=f"Save on {m.name} orders — limited time.",
+                coupon_type=CouponType.PERCENT_OFF,
+                value=15.0,
+                currency="USD",
+                min_purchase=25.0,
+                max_discount=50.0,
+                expires_at=expires,
+                is_verified=(i % 2 == 0),
+                use_count=0,
+                created_at=now,
+                updated_at=now,
+                tags=["welcome", "general"],
+            )
+        )
+        code2 = f"SHIPFREE{i}"
+        cid2 = hash_coupon_id(m.merchant_id, code2, now.timestamp() + 1)
+        coupons.append(
+            Coupon(
+                coupon_id=cid2,
+                merchant_id=m.merchant_id,
+                code=code2,
+                description="Free standard shipping on orders over $49.",
+                coupon_type=CouponType.FREE_SHIP,
+                value=0,
+                currency="USD",
