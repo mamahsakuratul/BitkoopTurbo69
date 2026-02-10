@@ -678,3 +678,37 @@ def _mock_coupons(merchants: List[Merchant]) -> List[Coupon]:
                 coupon_type=CouponType.FREE_SHIP,
                 value=0,
                 currency="USD",
+                min_purchase=49.0,
+                expires_at=expires,
+                is_verified=True,
+                use_count=0,
+                created_at=now,
+                updated_at=now,
+                tags=["shipping"],
+            )
+        )
+    return coupons
+
+
+def load_mock_merchants() -> List[Merchant]:
+    return _mock_merchants()
+
+
+def load_mock_coupons() -> List[Coupon]:
+    return _mock_coupons(_mock_merchants())
+
+
+# ---------------------------------------------------------------------------
+# AI engine
+# ---------------------------------------------------------------------------
+
+
+class CouponAIEngine:
+    def __init__(self, store: CouponStore) -> None:
+        self._store = store
+
+    def search(self, request: SearchRequest) -> List[SearchResult]:
+        query_terms = [t for t in request.query.lower().split() if len(t) >= 2]
+        if not query_terms:
+            return []
+        candidates: List[Coupon] = []
