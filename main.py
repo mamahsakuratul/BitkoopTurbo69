@@ -882,3 +882,37 @@ class AnalyticsAggregator:
     def record_search(self, query: str, result_count: int, categories: List[str]) -> None:
         self._search_events.append(
             SearchEvent(query=query, result_count=result_count, categories=categories)
+        )
+        self._query_counts[query.lower()] = self._query_counts.get(query.lower(), 0) + 1
+
+    def record_redemption(self, coupon_id: str, merchant_id: str, value: float) -> None:
+        self._redemption_events.append(
+            RedemptionEvent(coupon_id=coupon_id, merchant_id=merchant_id, value=value)
+        )
+        self._merchant_redemption_totals[merchant_id] = (
+            self._merchant_redemption_totals.get(merchant_id, 0) + value
+        )
+
+    def total_searches(self) -> int:
+        return len(self._search_events)
+
+    def total_redemptions(self) -> int:
+        return len(self._redemption_events)
+
+    def top_queries(self, n: int = 10) -> List[tuple]:
+        return sorted(self._query_counts.items(), key=lambda x: x[1], reverse=True)[:n]
+
+    def merchant_redemption_summary(self) -> Dict[str, float]:
+        return dict(self._merchant_redemption_totals)
+
+    def clear(self) -> None:
+        self._search_events.clear()
+        self._redemption_events.clear()
+        self._query_counts.clear()
+        self._merchant_redemption_totals.clear()
+
+
+# ---------------------------------------------------------------------------
+# Export
+# ---------------------------------------------------------------------------
+
