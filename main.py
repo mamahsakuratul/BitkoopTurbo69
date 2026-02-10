@@ -746,3 +746,37 @@ class CouponAIEngine:
         start = (page - 1) * page_size
         return results[start : start + page_size]
 
+    def suggest_for_merchant(self, merchant_id: str, limit: int = 5) -> List[SearchResult]:
+        coupons = self._store.get_coupons_by_merchant(merchant_id)
+        merchant = self._store.get_merchant(merchant_id)
+        if not merchant:
+            return []
+        out: List[SearchResult] = []
+        for c in coupons[: limit * 2]:
+            reasons: List[str] = ["merchant_suggestion"]
+            score = compute_coupon_score(c, merchant, [merchant.name], reasons)
+            out.append(SearchResult(coupon=c, score=score, match_reasons=reasons))
+        out.sort(key=lambda r: r.score, reverse=True)
+        return out[:limit]
+
+    def suggest_by_category(self, category: str, limit: int = 10) -> List[SearchResult]:
+        categories = validate_categories([category])
+        if not categories:
+            return []
+        req = SearchRequest(query=category, categories=categories, page_size=limit)
+        return self.search(req)
+
+
+# ---------------------------------------------------------------------------
+# Middleware
+# ---------------------------------------------------------------------------
+
+
+class InMemoryRateLimiter:
+    def __init__(self, requests_per_minute: int = RATE_LIMIT_REQUESTS_PER_MINUTE) -> None:
+        self._rpm = requests_per_minute
+        self._counts: defaultdict = defaultdict(list)
+
+    def _trim(self, key: str) -> None:
+        now = time.time()
+        cutoff = now - 60
