@@ -780,3 +780,37 @@ class InMemoryRateLimiter:
     def _trim(self, key: str) -> None:
         now = time.time()
         cutoff = now - 60
+        self._counts[key] = [t for t in self._counts[key] if t > cutoff]
+
+    def allow(self, key: str) -> bool:
+        self._trim(key)
+        if len(self._counts[key]) >= self._rpm:
+            return False
+        self._counts[key].append(time.time())
+        return True
+
+    def remaining(self, key: str) -> int:
+        self._trim(key)
+        return max(0, self._rpm - len(self._counts[key]))
+
+
+def rate_limit_middleware(limiter: InMemoryRateLimiter, get_key: Callable[[Any], str]):
+    def wrapper(handler):
+        def inner(request: Any) -> Any:
+            key = get_key(request)
+            if not limiter.allow(key):
+                return {"success": False, "error": "Rate limit exceeded", "code": "RATE_LIMIT"}
+            return handler(request)
+        return inner
+    return wrapper
+
+
+# ---------------------------------------------------------------------------
+# Cache
+# ---------------------------------------------------------------------------
+
+
+class TTLCache:
+    def __init__(self, ttl_seconds: int, max_entries: int = 1000) -> None:
+        self._ttl = ttl_seconds
+        self._max = max_entries
