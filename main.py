@@ -712,3 +712,37 @@ class CouponAIEngine:
         if not query_terms:
             return []
         candidates: List[Coupon] = []
+        if request.merchant_ids:
+            for mid in request.merchant_ids:
+                candidates.extend(self._store.get_coupons_by_merchant(mid))
+        elif request.categories:
+            expanded = expand_categories_with_subs(request.categories)
+            for cat in expanded:
+                candidates.extend(self._store.get_coupons_by_category(cat))
+            candidates = list({c.coupon_id: c for c in candidates}.values())
+        else:
+            candidates = self._store.list_all_coupons(limit=500)
+        if request.coupon_types:
+            type_set = set(request.coupon_types)
+            candidates = [c for c in candidates if c.coupon_type in type_set]
+        results: List[SearchResult] = []
+        seen_ids: set = set()
+        for coupon in candidates:
+            if coupon.coupon_id in seen_ids:
+                continue
+            merchant = self._store.get_merchant(coupon.merchant_id)
+            if not merchant:
+                continue
+            match_reasons: List[str] = []
+            score = compute_coupon_score(coupon, merchant, query_terms, match_reasons)
+            if not match_reasons and not request.categories:
+                match_reasons.append("general_match")
+            results.append(SearchResult(coupon=coupon, score=score, match_reasons=match_reasons))
+            seen_ids.add(coupon.coupon_id)
+        results.sort(key=lambda r: r.score, reverse=True)
+        results = results[:MAX_COUPONS_PER_QUERY]
+        page_size = max(1, request.page_size)
+        page = max(1, request.page)
+        start = (page - 1) * page_size
+        return results[start : start + page_size]
+
