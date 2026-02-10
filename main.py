@@ -984,3 +984,37 @@ def get_store() -> CouponStore:
 def get_engine() -> CouponAIEngine:
     global _engine
     if _engine is None:
+        _engine = CouponAIEngine(get_store())
+    return _engine
+
+
+def get_limiter() -> InMemoryRateLimiter:
+    global _limiter
+    if _limiter is None:
+        cfg = get_config()
+        _limiter = InMemoryRateLimiter(requests_per_minute=cfg.rate_limit_rpm)
+    return _limiter
+
+
+def _get_client_key(environ: dict) -> str:
+    return environ.get("REMOTE_ADDR", "unknown")
+
+
+# ---------------------------------------------------------------------------
+# WSGI application
+# ---------------------------------------------------------------------------
+
+
+def _parse_path(path: str) -> Tuple[str, List[str]]:
+    parts = [p for p in path.split("/") if p]
+    if not parts:
+        return "", []
+    return parts[0], parts[1:]
+
+
+def _read_body(environ: dict) -> bytes:
+    body = b""
+    if environ.get("REQUEST_METHOD", "GET").upper() in ("POST", "PUT", "PATCH"):
+        try:
+            length = int(environ.get("CONTENT_LENGTH", 0))
+            if length:
