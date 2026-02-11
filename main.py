@@ -1120,3 +1120,37 @@ def cmd_search(store: CouponStore, engine: CouponAIEngine, args: argparse.Namesp
     req = SearchRequest(
         query=args.query,
         categories=args.categories.split(",") if args.categories else None,
+        page=args.page,
+        page_size=args.page_size,
+    )
+    results = engine.search(req)
+    out = serialize_search_results(results)
+    print(json.dumps({"results": out, "count": len(out)}, indent=2))
+    return 0
+
+
+def cmd_merchants(store: CouponStore, args: argparse.Namespace) -> int:
+    merchants = store.list_merchants(limit=args.limit)
+    print(json.dumps({"merchants": [serialize_merchant(m) for m in merchants]}, indent=2))
+    return 0
+
+
+def cmd_coupons(store: CouponStore, args: argparse.Namespace) -> int:
+    coupons = store.list_all_coupons(limit=args.limit)
+    print(json.dumps({"coupons": [serialize_coupon(c) for c in coupons]}, indent=2))
+    return 0
+
+
+def cmd_seed(store: CouponStore, args: argparse.Namespace) -> int:
+    print("Seed data already loaded in-memory. Merchants:", store.merchant_count(), "Coupons:", store.coupon_count())
+    return 0
+
+
+def cli_main() -> int:
+    parser = argparse.ArgumentParser(prog="bitkoop-turbo69", description="BitkoopTurbo69 AI coupon assistant CLI")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    sub = parser.add_subparsers(dest="command", required=True)
+    search_p = sub.add_parser("search", help="Search coupons by query")
+    search_p.add_argument("query", help="Search query")
+    search_p.add_argument("--categories", default=None, help="Comma-separated categories")
+    search_p.add_argument("--page", type=int, default=1)
