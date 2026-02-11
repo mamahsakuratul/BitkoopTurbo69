@@ -1188,3 +1188,37 @@ def _run_wsgi() -> None:
     cfg = get_config()
     host, port = cfg.api_host, cfg.api_port
     with make_server(host, port, application) as httpd:
+        print(f"BitkoopTurbo69 API on http://{host}:{port}")
+        httpd.serve_forever()
+
+
+def _run_shopping_god_static() -> None:
+    root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shopping-god")
+    if not os.path.isdir(root):
+        print("shopping-god directory not found.", file=sys.stderr)
+        sys.exit(1)
+    try:
+        import http.server
+        import webbrowser
+    except ImportError:
+        sys.exit(1)
+    os.chdir(root)
+    port = 8948
+    handler = http.server.SimpleHTTPRequestHandler
+    with http.server.HTTPServer(("", port), handler) as httpd:
+        url = f"http://127.0.0.1:{port}"
+        print(f"Shopping God at {url}")
+        webbrowser.open(url)
+        httpd.serve_forever()
+
+
+def main() -> None:
+    mode = sys.argv[1] if len(sys.argv) > 1 else "api"
+    if mode == "web" or mode == "shopping-god":
+        _run_shopping_god_static()
+    elif mode == "cli":
+        sys.exit(cli_main())
+    else:
+        _run_wsgi()
+
+
