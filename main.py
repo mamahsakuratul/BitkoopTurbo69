@@ -1222,3 +1222,7 @@ def main() -> None:
         _run_wsgi()
 
 
+if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] in ("search", "merchants", "coupons", "seed"):
+        sys.exit(cli_main())
+    main()
