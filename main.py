@@ -1086,3 +1086,37 @@ def application(environ: dict, start_response: Callable) -> List[bytes]:
         coupon = get_store().get_coupon(rest[0])
         if not coupon:
             start_response("404 Not Found", [("Content-Type", "application/json")])
+            return [_json_response({"success": False, "error": "Coupon not found"})]
+        payload = {"success": True, "coupon": serialize_coupon(coupon)}
+        start_response("200 OK", [("Content-Type", "application/json")])
+        return [_json_response(payload)]
+    if base == "suggest" and len(rest) == 1 and method == "GET":
+        results = get_engine().suggest_for_merchant(rest[0], limit=10)
+        payload = {"success": True, "suggestions": serialize_search_results(results)}
+        start_response("200 OK", [("Content-Type", "application/json")])
+        return [_json_response(payload)]
+    if base == "health" and method == "GET":
+        start_response("200 OK", [("Content-Type", "application/json")])
+        return [_json_response({"status": "ok", "service": "BitkoopTurbo69"})]
+    start_response("404 Not Found", [("Content-Type", "application/json")])
+    return [_json_response({"success": False, "error": "Not found"})]
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+
+def _build_store() -> CouponStore:
+    store = CouponStore()
+    for m in load_mock_merchants():
+        store.add_merchant(m)
+    for c in load_mock_coupons():
+        store.add_coupon(c)
+    return store
+
+
+def cmd_search(store: CouponStore, engine: CouponAIEngine, args: argparse.Namespace) -> int:
+    req = SearchRequest(
+        query=args.query,
+        categories=args.categories.split(",") if args.categories else None,
