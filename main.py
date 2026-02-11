@@ -1052,3 +1052,37 @@ def application(environ: dict, start_response: Callable) -> List[bytes]:
         categories = validate_categories(data.get("categories"))
         types_raw = data.get("coupon_types")
         coupon_types = None
+        if types_raw and isinstance(types_raw, list):
+            try:
+                coupon_types = [CouponType(t) for t in types_raw]
+            except ValueError:
+                pass
+        req = SearchRequest(
+            query=query,
+            categories=categories if categories else None,
+            merchant_ids=data.get("merchant_ids"),
+            coupon_types=coupon_types,
+            page=page,
+            page_size=page_size,
+        )
+        results = get_engine().search(req)
+        payload = {"success": True, "results": serialize_search_results(results), "page": page, "page_size": page_size}
+        start_response("200 OK", [("Content-Type", "application/json")])
+        return [_json_response(payload)]
+    if base == "merchants" and method == "GET":
+        store = get_store()
+        qs = environ.get("QUERY_STRING", "")
+        limit_str = "50"
+        for part in qs.split("&"):
+            if part.startswith("limit="):
+                limit_str = part.split("=", 1)[1]
+                break
+        limit = validate_page_size(int(limit_str or "50"), 100)
+        merchants = store.list_merchants(limit=limit)
+        payload = {"success": True, "merchants": [serialize_merchant(m) for m in merchants]}
+        start_response("200 OK", [("Content-Type", "application/json")])
+        return [_json_response(payload)]
+    if base == "coupons" and len(rest) == 1 and method == "GET":
+        coupon = get_store().get_coupon(rest[0])
+        if not coupon:
+            start_response("404 Not Found", [("Content-Type", "application/json")])
