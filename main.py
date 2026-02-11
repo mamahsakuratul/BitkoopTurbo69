@@ -1154,3 +1154,37 @@ def cli_main() -> int:
     search_p.add_argument("query", help="Search query")
     search_p.add_argument("--categories", default=None, help="Comma-separated categories")
     search_p.add_argument("--page", type=int, default=1)
+    search_p.add_argument("--page-size", type=int, default=12, dest="page_size")
+    mer_p = sub.add_parser("merchants", help="List merchants")
+    mer_p.add_argument("--limit", type=int, default=50)
+    coup_p = sub.add_parser("coupons", help="List coupons")
+    coup_p.add_argument("--limit", type=int, default=50)
+    sub.add_parser("seed", help="Show seed stats")
+    args = parser.parse_args()
+    store = _build_store()
+    engine = CouponAIEngine(store)
+    if args.command == "search":
+        return cmd_search(store, engine, args)
+    if args.command == "merchants":
+        return cmd_merchants(store, args)
+    if args.command == "coupons":
+        return cmd_coupons(store, args)
+    if args.command == "seed":
+        return cmd_seed(store, args)
+    return 1
+
+
+# ---------------------------------------------------------------------------
+# Run (API server or Shopping God static)
+# ---------------------------------------------------------------------------
+
+
+def _run_wsgi() -> None:
+    try:
+        from wsgiref.simple_server import make_server
+    except ImportError:
+        print("wsgiref not available; install Python standard library.", file=sys.stderr)
+        sys.exit(1)
+    cfg = get_config()
+    host, port = cfg.api_host, cfg.api_port
+    with make_server(host, port, application) as httpd:
